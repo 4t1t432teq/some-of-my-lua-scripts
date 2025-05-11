@@ -1,102 +1,101 @@
--- LocalScript inside StarterPlayer -> StarterCharacterScripts
 
 local player = game.Players.LocalPlayer
-local lastMoveTime = tick()  -- Tracks when the last move occurred
+local lastMoveTime = tick() 
 
--- Function to make the player jump randomly with a 0.5% chance every half second
+
 local function randomJump()
-    -- 0.5% chance to jump (0.005)
-    if math.random() < 0.005 then  -- 0.5% chance to jump
+ 
+    if math.random() < 0.005 then 
         local humanoid = player.Character:FindFirstChild("Humanoid")
         if humanoid then
-            humanoid.Jump = true  -- Trigger jump
+            humanoid.Jump = true  
         end
     end
 end
 
--- Function to move the player randomly
+
 local function moveRandomly()
-    -- Check if the character exists and if it's the local player
+   
     local function startMovement(character)
         local humanoid = character:WaitForChild("Humanoid")
         local rootPart = character:WaitForChild("HumanoidRootPart")
 
         while true do
-            -- Calculate a random target position around the player
+         
             local randomDirection = Vector3.new(
-                math.random(-50, 50),  -- Random x direction
-                0,                     -- Keep y at 0 to stay on the ground
-                math.random(-50, 50)   -- Random z direction
+                math.random(-50, 50),  
+                0,                   
+                math.random(-50, 50) 
             )
 
-            -- Target position relative to the player's current position
+         
             local targetPosition = rootPart.Position + randomDirection
 
-            -- Make sure the target position is valid (no obstacles, within bounds, etc.)
+   
             humanoid:MoveTo(targetPosition)
 
-            -- Calculate how long the player will walk towards the target based on distance
+          
             local distance = (rootPart.Position - targetPosition).Magnitude
-            local walkingTime = distance / humanoid.WalkSpeed  -- Time = distance / speed
+            local walkingTime = distance / humanoid.WalkSpeed
 
-            -- Ensure walking time is within a reasonable range (e.g., 5 to 15 seconds)
-            walkingTime = math.min(math.max(walkingTime, 5), 15)  -- Ensure time is between 5 and 15 seconds
+         
+            walkingTime = math.min(math.max(walkingTime, 5), 15) 
 
-            -- Wait until the player reaches the target or the walking time has elapsed
+      
             local startTime = tick()
             while (rootPart.Position - targetPosition).Magnitude > 2 and (tick() - startTime) < walkingTime do
-                -- Randomly trigger jumps during movement every 0.5 seconds
+            
                 randomJump()
 
-                wait(0.5)  -- Wait for half a second before checking again
+                wait(0.5)  
             end
 
-            -- Optional: Pause for a short time before making another move (to give the player a break)
-            wait(1)  -- You can adjust this to control the delay between movements
+      
+            wait(1) 
         end
     end
 
-    -- Listen for the player's character respawning
+ 
     player.CharacterAdded:Connect(function(character)
-        -- Wait until the character is fully loaded
+      
         character:WaitForChild("HumanoidRootPart")
         character:WaitForChild("Humanoid")
         
-        -- Start the movement loop after respawn
+    
         startMovement(character)
     end)
 
-    -- If the character is already loaded, start immediately
+ 
     if player.Character then
         startMovement(player.Character)
     end
 end
 
--- Anti-AFK system: moves the player slightly to reset AFK timer
+
 local function antiAFK()
     while true do
-        -- Check if enough time has passed since the last movement
-        if tick() - lastMoveTime >= 10 then  -- If 10 seconds have passed since the last move
+   
+        if tick() - lastMoveTime >= 10 then 
             local character = player.Character
             if character then
                 local humanoid = character:FindFirstChild("Humanoid")
                 local rootPart = character:FindFirstChild("HumanoidRootPart")
                 
                 if humanoid and rootPart then
-                    -- Move the player slightly to reset the AFK timer
-                    rootPart.CFrame = rootPart.CFrame * CFrame.new(1, 0, 0)  -- Move slightly along the x-axis
+                 
+                    rootPart.CFrame = rootPart.CFrame * CFrame.new(1, 0, 0) 
 
-                    -- Update last move time
+                  
                     lastMoveTime = tick()
                 end
             end
         end
-        wait(1)  -- Check every second
+        wait(1)  
     end
 end
 
--- Start the random movement loop
+
 moveRandomly()
 
--- Start the anti-AFK loop
+
 antiAFK()
